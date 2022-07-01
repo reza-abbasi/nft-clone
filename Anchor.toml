@@ -1,14 +1,14 @@
 [features]
 seeds = false
 [programs.devnet]
-sol_mint_nft = "9FKLho9AUYScrrKgJbG1mExt5nSgEfk1CNEbR8qBwKTZ"
+sol_mint_nft = "8fgUWBN1YFEKwK6kRTTMWj16ho9VNWLW12mPyxQPMLx1"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "devnet"
-wallet = "/home/ksh/.config/solana/id.json"
+wallet = "/home/reza/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
