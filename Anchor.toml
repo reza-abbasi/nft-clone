@@ -1,5 +1,8 @@
 [features]
 seeds = false
+[programs.localnet]
+sol_mint_nft = "8fgUWBN1YFEKwK6kRTTMWj16ho9VNWLW12mPyxQPMLx1"
+
 [programs.devnet]
 sol_mint_nft = "8fgUWBN1YFEKwK6kRTTMWj16ho9VNWLW12mPyxQPMLx1"
 
