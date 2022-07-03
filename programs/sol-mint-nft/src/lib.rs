@@ -6,13 +6,14 @@ use {
     },
     anchor_spl::{
         associated_token,
-        token,
+        token
     },
     mpl_token_metadata::{
         ID as TOKEN_METADATA_ID,
         instruction as token_instruction,
     },
 };
+
 
 
 declare_id!("8fgUWBN1YFEKwK6kRTTMWj16ho9VNWLW12mPyxQPMLx1");
@@ -23,9 +24,6 @@ pub mod mint_nft {
 
     pub fn mint(
         ctx: Context<MintNft>, 
-        metadata_title: String, 
-        metadata_symbol: String, 
-        metadata_uri: String,
     ) -> Result<()> {
 
         msg!("Creating mint account...");
@@ -90,8 +88,35 @@ pub mod mint_nft {
             1,
         )?;
 
+        msg!("Burning old mint...");
+        token::burn(
+            CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                token::Burn {
+                    mint: ctx.accounts.mint.to_account_info(),
+                    from: ctx.accounts.old_token_account.to_account_info(),
+                    authority: ctx.accounts.mint_authority.to_account_info(),
+                }
+            ),
+            1
+        )?;
+
         msg!("Creating metadata account...");
         msg!("Metadata account address: {}", &ctx.accounts.metadata.to_account_info().key());
+
+        let creators = vec![
+            // mpl_token_metadata::state::Creator {
+            //     address: creator_key,
+            //     verified: false,
+            //     share: 100,
+            // },
+            mpl_token_metadata::state::Creator {
+                address: ctx.accounts.mint_authority.key(),
+                verified: false,
+                share: 100
+            }
+        ];
+
         invoke(
             &token_instruction::create_metadata_accounts_v2(
                 TOKEN_METADATA_ID, 
@@ -100,10 +125,10 @@ pub mod mint_nft {
                 ctx.accounts.mint_authority.key(), 
                 ctx.accounts.mint_authority.key(), 
                 ctx.accounts.mint_authority.key(), 
-                metadata_title, 
-                metadata_symbol, 
-                metadata_uri, 
-                None,
+                ctx.accounts.old_mint_metadata.name[..].to_string(), 
+                ctx.accounts.old_mint_metadata.symbol[..].to_string(), 
+                ctx.accounts.old_mint_metadata.uri[..].to_string(), 
+                Some(creators),
                 1,
                 true, 
                 false, 
@@ -149,6 +174,14 @@ pub mod mint_nft {
 }
 
 
+#[account]
+pub struct DataV2 {
+    pub name: String,
+    pub symbol: String,
+    pub uri: String,
+    pub seller_fee_basis_points: u16,
+}
+
 #[derive(Accounts)]
 pub struct MintNft<'info> {
     /// CHECK: We're about to create this with Metaplex
@@ -162,6 +195,15 @@ pub struct MintNft<'info> {
     /// CHECK: We're about to create this with Anchor
     #[account(mut)]
     pub token_account: UncheckedAccount<'info>,
+
+    #[account(mut)]
+    pub old_mint: Account<'info, token::Mint>,
+    #[account(seeds = [b"metadata", token_metadata_program.key().as_ref(), old_mint.key().as_ref(), b"edition"], bump)]
+    pub old_mint_metadata: Account<'info, DataV2>,
+    #[account(seeds = [b"metadata", token_metadata_program.key().as_ref(), old_mint.key().as_ref(), b"edition"], bump)]
+    pub old_mint_account: Account<'info, token::TokenAccount>,
+    
+    
     #[account(mut)]
     pub mint_authority: Signer<'info>,
     pub rent: Sysvar<'info, Rent>,

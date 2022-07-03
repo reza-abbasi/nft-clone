@@ -71,6 +71,7 @@ describe("nft-marketplace", async () => {
       tokenAccount: tokenAddress,
       mintAuthority: wallet.publicKey,
       tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+      // baseMint: new anchor.web3.PublicKey('FxrVu6bwpaZgSMhvnJB4XQ4YyBpHSVuZpfMq41HBvxEn')
     })
     .signers([mintKeypair])
     .rpc();
